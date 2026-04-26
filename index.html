@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a2744">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Lodge Education Officer Tracker</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f0;
+    --bg3: #eeedea;
+    --text: #1a1a1a;
+    --text2: #666660;
+    --text3: #999993;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --radius: 10px;
+    --radius-sm: 7px;
+    --success: #27500a;
+    --success-bg: #eaf3de;
+    --danger: #791f1f;
+    --danger-bg: #fcebeb;
+    --info: #0c447c;
+    --info-bg: #e6f1fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --bg2: #2c2c2e;
+      --bg3: #3a3a3c;
+      --text: #f2f2f7;
+      --text2: #aeaeb2;
+      --text3: #636366;
+      --border: rgba(255,255,255,0.12);
+      --border2: rgba(255,255,255,0.22);
+      --success: #c0dd97;
+      --success-bg: #27500a;
+      --danger: #f7c1c1;
+      --danger-bg: #791f1f;
+      --info: #b5d4f4;
+      --info-bg: #0c447c;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+
+  /* Header */
+  .app-header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 14px 16px 10px; position: sticky; top: 0; z-index: 100; }
+  .app-title { font-size: 17px; font-weight: 600; color: var(--text); }
+  .app-subtitle { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+  /* Tabs */
+  .tabs-wrap { background: var(--bg); border-bottom: 0.5px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .tabs-wrap::-webkit-scrollbar { display: none; }
+  .tabs { display: flex; padding: 0 12px; gap: 0; min-width: max-content; }
+  .tab { padding: 10px 14px; font-size: 13px; font-weight: 400; color: var(--text2); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.15s; }
+  .tab.active { color: var(--text); font-weight: 600; border-bottom-color: var(--text); }
+
+  /* Content */
+  .content { padding: 16px; max-width: 700px; margin: 0 auto; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+  .form-card { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 16px; }
+
+  /* Form elements */
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-label { font-size: 12px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  input, select { width: 100%; padding: 9px 11px; font-size: 15px; border: 0.5px solid var(--border2); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-family: inherit; appearance: none; -webkit-appearance: none; }
+  input:focus, select:focus { outline: 2px solid var(--info); outline-offset: -1px; }
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+
+  /* Buttons */
+  .btn { padding: 9px 18px; font-size: 14px; font-weight: 600; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); cursor: pointer; transition: opacity 0.1s; font-family: inherit; }
+  .btn:active { opacity: 0.7; }
+  .btn-primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .btn-danger { color: var(--danger); border-color: var(--danger); background: none; font-size: 13px; padding: 6px 12px; }
+  .btn-edit { color: var(--info); border-color: var(--info); background: none; font-size: 13px; padding: 6px 12px; }
+  .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+  /* Section header */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 18px; font-weight: 700; }
+  .form-section-title { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 12px; }
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 15px; }
+
+  /* Record cards */
+  .record-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .record-title { font-size: 15px; font-weight: 600; }
+  .record-meta { font-size: 13px; color: var(--text2); margin-top: 3px; }
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+
+  /* Badge colors */
+  .b-blue   { background:#E6F1FB; color:#0C447C; }
+  .b-teal   { background:#E1F5EE; color:#085041; }
+  .b-amber  { background:#FAEEDA; color:#633806; }
+  .b-green  { background:#EAF3DE; color:#27500A; }
+  .b-red    { background:#FCEBEB; color:#791F1F; }
+  .b-gray   { background:#F1EFE8; color:#444441; }
+  .b-purple { background:#EEEDFE; color:#3C3489; }
+  .b-pink   { background:#FBEAF0; color:#72243E; }
+  .b-coral  { background:#FAECE7; color:#712B13; }
+  @media (prefers-color-scheme: dark) {
+    .b-blue   { background:#0C447C; color:#B5D4F4; }
+    .b-teal   { background:#085041; color:#9FE1CB; }
+    .b-amber  { background:#633806; color:#FAC775; }
+    .b-green  { background:#27500A; color:#C0DD97; }
+    .b-red    { background:#791F1F; color:#F7C1C1; }
+    .b-gray   { background:#444441; color:#D3D1C7; }
+    .b-purple { background:#3C3489; color:#CECBF6; }
+    .b-pink   { background:#72243E; color:#F4C0D1; }
+    .b-coral  { background:#712B13; color:#F5C4B3; }
+  }
+
+  /* Inline edit */
+  .inline-edit { margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--border); }
+
+  /* Overview */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 14px; cursor: pointer; }
+  .stat-card:active { opacity: 0.7; }
+  .stat-label { font-size: 12px; color: var(--text2); font-weight: 500; margin-bottom: 6px; }
+  .stat-number { font-size: 30px; font-weight: 700; line-height: 1; }
+  .ov-section { margin-bottom: 20px; }
+  .ov-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+  .ov-title { font-size: 14px; font-weight: 700; }
+  .ov-link { font-size: 13px; color: var(--info); background: none; border: none; cursor: pointer; font-family: inherit; padding: 0; }
+  .ov-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--border); }
+  .ov-row:last-child { border-bottom: none; }
+  .ov-row-left { font-size: 14px; font-weight: 500; }
+  .ov-row-right { font-size: 12px; color: var(--text2); text-align: right; flex-shrink: 0; max-width: 55%; }
+  .ov-empty { font-size: 13px; color: var(--text3); padding: 8px 0; }
+  .deg-mini-grid { display: flex; gap: 8px; margin-bottom: 12px; }
+  .deg-mini { flex: 1; background: var(--bg2); border-radius: var(--radius-sm); padding: 10px 12px; }
+  .deg-mini-label { font-size: 11px; color: var(--text2); font-weight: 500; margin-bottom: 4px; }
+  .deg-mini-num { font-size: 22px; font-weight: 700; }
+
+  /* Save indicator */
+  .save-toast { position: fixed; bottom: 20px; right: 16px; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 20px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+  .save-toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-title">Lodge Education Officer</div>
+  <div class="app-subtitle">Tracker &amp; Records</div>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('overview')">Overview</button>
+    <button class="tab" onclick="switchTab('programs')">Education</button>
+    <button class="tab" onclick="switchTab('candidates')">Candidates</button>
+    <button class="tab" onclick="switchTab('returns')">Returns</button>
+    <button class="tab" onclick="switchTab('leadership')">Leadership</button>
+    <button class="tab" onclick="switchTab('scofield')">Royal Scofield</button>
+    <button class="tab" onclick="switchTab('degrees')">Degrees</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview" class="section active">
+    <div id="overview-content"></div>
+  </div>
+
+  <!-- EDUCATION PROGRAMS -->
+  <div id="tab-programs" class="section">
+    <div class="section-header">
+      <span class="section-title">Education programs</span>
+      <button class="btn" onclick="toggleForm('prog-form')">+ Add</button>
+    </div>
+    <div id="prog-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New education program</div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Program / topic title</label>
+            <input id="prog-title" type="text" placeholder="e.g. Working Tools of the First Degree">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date delivered</label>
+            <input id="prog-date" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Delivered by</label>
+            <input id="prog-deliverer" type="text" placeholder="Brother / name">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addProgram()">Save program</button>
+          <button class="btn" onclick="toggleForm('prog-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="prog-list"></div>
+  </div>
+
+  <!-- CANDIDATES -->
+  <div id="tab-candidates" class="section">
+    <div class="section-header">
+      <span class="section-title">Candidates</span>
+      <button class="btn" onclick="toggleForm('cand-form')">+ Add</button>
+    </div>
+    <div id="cand-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New candidate</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Candidate name</label>
+            <input id="cand-name" type="text" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Master craftsman</label>
+            <input id="cand-mc" type="text" placeholder="Brother / name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Current degree</label>
+            <select id="cand-degree">
+              <option value="">Select degree</option>
+              <option>Entered Apprentice (1°)</option>
+              <option>Fellowcraft (2°)</option>
+              <option>Master Mason (3°)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Return exam given?</label>
+            <select id="cand-exam">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam booklet</label>
+            <select id="cand-booklet">
+              <option value="">None</option>
+              <option>Entered Apprentice</option>
+              <option>Fellowcraft</option>
+              <option>Master Mason</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addCandidate()">Save candidate</button>
+          <button class="btn" onclick="toggleForm('cand-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="cand-list"></div>
+  </div>
+
+  <!-- RETURNS -->
+  <div id="tab-returns" class="section">
+    <div class="section-header">
+      <span class="section-title">Returns given</span>
+      <button class="btn" onclick="toggleForm('ret-form')">+ Add</button>
+    </div>
+    <div id="ret-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New return record</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Brother giving return</label>
+            <input id="ret-name" type="text" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date given</label>
+            <input id="ret-date" type="date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Degree return is for</label>
+            <select id="ret-degree">
+              <option value="">Select degree</option>
+              <option>Entered Apprentice (1°)</option>
+              <option>Fellowcraft (2°)</option>
+              <option>Master Mason (3°)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Method of return</label>
+            <select id="ret-method">
+              <option value="">Select method</option>
+              <option>Traditional return</option>
+              <option>Minimum proficiency</option>
+              <option>Principles of proficiency</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addReturn()">Save return</button>
+          <button class="btn" onclick="toggleForm('ret-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="ret-list"></div>
+  </div>
+
+  <!-- LEADERSHIP TRAINING -->
+  <div id="tab-leadership" class="section">
+    <div class="section-header">
+      <span class="section-title">Leadership training</span>
+      <button class="btn" onclick="toggleForm('lead-form')">+ Add</button>
+    </div>
+    <div id="lead-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New leadership training record</div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Training name</label>
+            <input id="lead-training" type="text" placeholder="e.g. Grand Lodge Officer Seminar">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date held</label>
+            <input id="lead-date" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Brother who attended</label>
+            <input id="lead-name" type="text" placeholder="Full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Officer role</label>
+            <select id="lead-role">
+              <option value="">Select role</option>
+              <option>Worshipful Master</option>
+              <option>Senior Warden</option>
+              <option>Junior Warden</option>
+              <option>Treasurer</option>
+              <option>Secretary</option>
+              <option>Senior Deacon</option>
+              <option>Junior Deacon</option>
+              <option>Senior Steward</option>
+              <option>Junior Steward</option>
+              <option>Chaplain</option>
+              <option>Tyler</option>
+              <option>Lodge Education Officer</option>
+              <option>Assistant Secretary</option>
+              <option>Assistant Treasurer</option>
+              <option>Prospect Manager</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addLeadership()">Save training</button>
+          <button class="btn" onclick="toggleForm('lead-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="lead-list"></div>
+  </div>
+
+  <!-- ROYAL SCOFIELD SOCIETY -->
+  <div id="tab-scofield" class="section">
+    <div class="section-header">
+      <span class="section-title">Royal Scofield Society</span>
+      <button class="btn" onclick="toggleForm('scofield-form')">+ Add</button>
+    </div>
+    <div id="scofield-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New Royal Scofield Society member</div>
+        <div class="form-row">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Brother's name</label>
+            <input id="sc-name" type="text" placeholder="Full name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Level achieved</label>
+            <select id="sc-level">
+              <option value="">Select level</option>
+              <option>Fellow of the Craft</option>
+              <option>Pillar of the Craft</option>
+              <option>Master of the Craft</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date achieved</label>
+            <input id="sc-date" type="date">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addScofield()">Save member</button>
+          <button class="btn" onclick="toggleForm('scofield-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="scofield-list"></div>
+  </div>
+
+  <!-- DEGREE WORK -->
+  <div id="tab-degrees" class="section">
+    <div class="section-header">
+      <span class="section-title">Degree work</span>
+      <button class="btn" onclick="toggleForm('deg-form')">+ Add</button>
+    </div>
+    <div id="deg-form" style="display:none;">
+      <div class="form-card">
+        <div class="form-section-title">New degree record</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date conferred</label>
+            <input id="deg-date" type="date">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Degree conferred</label>
+            <select id="deg-degree">
+              <option value="">Select degree</option>
+              <option>First Degree (Entered Apprentice)</option>
+              <option>Second Degree (Fellowcraft)</option>
+              <option>Third Degree (Master Mason)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Candidate</label>
+            <input id="deg-candidate" type="text" placeholder="Candidate name">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addDegree()">Save record</button>
+          <button class="btn" onclick="toggleForm('deg-form')">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div id="deg-list"></div>
+  </div>
+
+</div><!-- end .content -->
+
+<div class="save-toast" id="save-toast">Saved</div>
+
+<script>
+const STORE_KEY = 'lodge_tracker_v1';
+
+const OFFICER_COLORS = {
+  'Worshipful Master':'b-amber','Senior Warden':'b-blue','Junior Warden':'b-blue',
+  'Treasurer':'b-teal','Secretary':'b-teal','Senior Deacon':'b-purple',
+  'Junior Deacon':'b-purple','Senior Steward':'b-coral','Junior Steward':'b-coral',
+  'Chaplain':'b-green','Tyler':'b-gray','Lodge Education Officer':'b-pink',
+  'Assistant Secretary':'b-teal','Assistant Treasurer':'b-teal','Prospect Manager':'b-gray'
+};
+
+const SCOFIELD_COLORS = {
+  'Fellow of the Craft': 'b-blue',
+  'Pillar of the Craft': 'b-purple',
+  'Master of the Craft': 'b-amber'
+};
+
+// Load from localStorage or start fresh
+let state = { programs: [], candidates: [], returns: [], leadership: [], scofield: [], degrees: [] };
+try {
+  const saved = localStorage.getItem(STORE_KEY);
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    state = Object.assign(state, parsed);
+  }
+} catch(e) {}
+
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    const toast = document.getElementById('save-toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1500);
+  } catch(e) {}
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  const tabs = ['overview','programs','candidates','returns','leadership','scofield','degrees'];
+  document.querySelectorAll('.tab')[tabs.indexOf(name)].classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'overview') renderOverview();
+}
+
+function toggleForm(id) {
+  const f = document.getElementById(id);
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function degreeColor(deg) {
+  if (!deg) return 'b-gray';
+  if (deg.includes('First')||deg.includes('1')||deg.includes('Entered')) return 'b-blue';
+  if (deg.includes('Second')||deg.includes('2')||deg.includes('Fellow')) return 'b-amber';
+  if (deg.includes('Third')||deg.includes('3')||deg.includes('Master Mason')) return 'b-teal';
+  return 'b-gray';
+}
+
+function methodColor(m) {
+  if (m === 'Traditional return') return 'b-purple';
+  if (m === 'Minimum proficiency') return 'b-green';
+  if (m === 'Principles of proficiency') return 'b-pink';
+  return 'b-gray';
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  return new Date(d + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────
+function renderOverview() {
+  const s = state;
+  const candPending = s.candidates.filter(c => c.exam !== 'Yes').length;
+  const degEA = s.degrees.filter(d=>d.degree.includes('First')||d.degree.includes('Entered')).length;
+  const degFC = s.degrees.filter(d=>d.degree.includes('Second')||d.degree.includes('Fellow')).length;
+  const degMM = s.degrees.filter(d=>d.degree.includes('Third')||d.degree.includes('Master Mason')).length;
+  const recent = arr => [...arr].sort((a,b)=>b.date>a.date?1:-1).slice(0,3);
+
+  document.getElementById('overview-content').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card" onclick="switchTab('candidates')"><div class="stat-label">Candidates</div><div class="stat-number">${s.candidates.length}</div></div>
+      <div class="stat-card" onclick="switchTab('candidates')"><div class="stat-label">Exams pending</div><div class="stat-number">${candPending}</div></div>
+      <div class="stat-card" onclick="switchTab('returns')"><div class="stat-label">Returns given</div><div class="stat-number">${s.returns.length}</div></div>
+      <div class="stat-card" onclick="switchTab('degrees')"><div class="stat-label">Degrees conferred</div><div class="stat-number">${s.degrees.length}</div></div>
+    </div>
+
+    <div style="margin-bottom:20px;">
+      <button class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;" onclick="generatePDF()">📄 Generate PDF Report</button>
+    </div>
+
+    <div class="ov-section">
+      <div class="ov-header"><span class="ov-title">Candidates at a glance</span><button class="ov-link" onclick="switchTab('candidates')">View all</button></div>
+      ${!s.candidates.length ? '<div class="ov-empty">No candidates recorded yet.</div>' : s.candidates.map(c=>`
+        <div class="ov-row">
+          <span class="ov-row-left">${c.name}</span>
+          <span class="ov-row-right">${c.degree||'—'} &middot; Exam: <span style="color:${c.exam==='Yes'?'var(--success)':'var(--danger)'}">${c.exam}</span></span>
+        </div>`).join('')}
+    </div>
+
+    <div class="ov-section">
+      <div class="ov-header"><span class="ov-title">Recent returns</span><button class="ov-link" onclick="switchTab('returns')">View all</button></div>
+      ${!s.returns.length ? '<div class="ov-empty">No returns recorded yet.</div>' : recent(s.returns).map(r=>`
+        <div class="ov-row">
+          <span class="ov-row-left">${r.name}</span>
+          <span class="ov-row-right">${r.degree} · ${r.method}${r.date?' · '+fmtDate(r.date):''}</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="ov-section">
+      <div class="ov-header"><span class="ov-title">Degree work</span><button class="ov-link" onclick="switchTab('degrees')">View all</button></div>
+      <div class="deg-mini-grid">
+        <div class="deg-mini"><div class="deg-mini-label">1° Entered Apprentice</div><div class="deg-mini-num">${degEA}</div></div>
+        <div class="deg-mini"><div class="deg-mini-label">2° Fellowcraft</div><div class="deg-mini-num">${degFC}</div></div>
+        <div class="deg-mini"><div class="deg-mini-label">3° Master Mason</div><div class="deg-mini-num">${degMM}</div></div>
+      </div>
+      ${!s.degrees.length ? '<div class="ov-empty">No degree work recorded yet.</div>' : recent(s.degrees).map(d=>`
+        <div class="ov-row">
+          <span class="ov-row-left">${d.candidate}</span>
+          <span class="ov-row-right">${d.degree}${d.date?' · '+fmtDate(d.date):''}</span>
+        </div>`).join('')}
+    </div>
+  `;
+}
+
+// ── PROGRAMS ──────────────────────────────────────────────
+function addProgram() {
+  const title = document.getElementById('prog-title').value.trim();
+  const date = document.getElementById('prog-date').value;
+  const deliverer = document.getElementById('prog-deliverer').value.trim();
+  if (!title) { alert('Please enter a program title.'); return; }
+  state.programs.unshift({ id: Date.now(), title, date, deliverer });
+  save();
+  ['prog-title','prog-deliverer'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prog-date').value='';
+  toggleForm('prog-form');
+  renderPrograms();
+}
+function renderPrograms() {
+  const el = document.getElementById('prog-list');
+  if (!state.programs.length) { el.innerHTML='<div class="empty">No programs recorded yet. Add one above.</div>'; return; }
+  el.innerHTML = state.programs.map(p=>`
+    <div class="card">
+      <div class="record-header">
+        <div>
+          <div class="record-title">${p.title}</div>
+          <div class="record-meta">${p.deliverer?'Delivered by '+p.deliverer:''}${p.deliverer&&p.date?' · ':''}${fmtDate(p.date)}</div>
+        </div>
+        <button class="btn btn-danger" onclick="remove('programs',${p.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── CANDIDATES ────────────────────────────────────────────
+function addCandidate() {
+  const name = document.getElementById('cand-name').value.trim();
+  if (!name) { alert('Please enter a candidate name.'); return; }
+  state.candidates.unshift({ id: Date.now(), name, mc: document.getElementById('cand-mc').value.trim(), degree: document.getElementById('cand-degree').value, exam: document.getElementById('cand-exam').value, booklet: document.getElementById('cand-booklet').value, editing: false });
+  save();
+  ['cand-name','cand-mc'].forEach(id=>document.getElementById(id).value='');
+  ['cand-degree','cand-booklet'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cand-exam').value='No';
+  toggleForm('cand-form');
+  renderCandidates();
+}
+function toggleEditCandidate(id) {
+  const c = state.candidates.find(x=>x.id===id);
+  if (c) { c.editing=!c.editing; renderCandidates(); }
+}
+function saveEditCandidate(id) {
+  const c = state.candidates.find(x=>x.id===id);
+  if (!c) return;
+  const name = document.getElementById('edit-name-'+id).value.trim();
+  if (!name) { alert('Please enter a candidate name.'); return; }
+  c.name=name; c.mc=document.getElementById('edit-mc-'+id).value.trim();
+  c.degree=document.getElementById('edit-degree-'+id).value;
+  c.exam=document.getElementById('edit-exam-'+id).value;
+  c.booklet=document.getElementById('edit-booklet-'+id).value;
+  c.editing=false; save(); renderCandidates();
+}
+function renderCandidates() {
+  const el = document.getElementById('cand-list');
+  if (!state.candidates.length) { el.innerHTML='<div class="empty">No candidates recorded yet. Add one above.</div>'; return; }
+  const degOpts=['Entered Apprentice (1°)','Fellowcraft (2°)','Master Mason (3°)'];
+  const bookOpts=['Entered Apprentice','Fellowcraft','Master Mason'];
+  el.innerHTML = state.candidates.map(c => {
+    const view=`
+      <div class="record-header">
+        <div>
+          <div class="record-title">${c.name}</div>
+          <div class="record-meta">${c.mc?'Master Craftsman: '+c.mc:''}</div>
+          <div class="badges">
+            ${c.degree?`<span class="badge ${degreeColor(c.degree)}">${c.degree}</span>`:''}
+            <span class="badge ${c.exam==='Yes'?'b-green':'b-red'}">Return exam: ${c.exam}</span>
+            ${c.booklet?`<span class="badge b-gray">Booklet: ${c.booklet}</span>`:''}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-edit" onclick="toggleEditCandidate(${c.id})">Edit</button>
+          <button class="btn btn-danger" onclick="remove('candidates',${c.id})">Remove</button>
+        </div>
+      </div>`;
+    const edit=`
+      <div style="flex:1;">
+        <div class="record-title" style="margin-bottom:10px;">Editing candidate</div>
+        <div class="inline-edit">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Candidate name</label><input id="edit-name-${c.id}" type="text" value="${c.name}"></div>
+            <div class="form-group"><label class="form-label">Master craftsman</label><input id="edit-mc-${c.id}" type="text" value="${c.mc||''}"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Current degree</label><select id="edit-degree-${c.id}"><option value="">Select degree</option>${degOpts.map(o=>`<option${c.degree===o?' selected':''}>${o}</option>`).join('')}</select></div>
+            <div class="form-group"><label class="form-label">Return exam given?</label><select id="edit-exam-${c.id}"><option${c.exam==='No'?' selected':''}>No</option><option${c.exam==='Yes'?' selected':''}>Yes</option></select></div>
+            <div class="form-group"><label class="form-label">Exam booklet</label><select id="edit-booklet-${c.id}"><option value="">None</option>${bookOpts.map(o=>`<option${c.booklet===o?' selected':''}>${o}</option>`).join('')}</select></div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveEditCandidate(${c.id})">Save changes</button>
+            <button class="btn" onclick="toggleEditCandidate(${c.id})">Cancel</button>
+          </div>
+        </div>
+      </div>`;
+    return `<div class="card">${c.editing?edit:view}</div>`;
+  }).join('');
+}
+
+// ── RETURNS ───────────────────────────────────────────────
+function addReturn() {
+  const name=document.getElementById('ret-name').value.trim();
+  const degree=document.getElementById('ret-degree').value;
+  const method=document.getElementById('ret-method').value;
+  if (!name) { alert('Please enter a name.'); return; }
+  if (!degree) { alert('Please select a degree.'); return; }
+  if (!method) { alert('Please select a method.'); return; }
+  state.returns.unshift({ id: Date.now(), name, date: document.getElementById('ret-date').value, degree, method });
+  save();
+  ['ret-name'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ret-date').value='';
+  ['ret-degree','ret-method'].forEach(id=>document.getElementById(id).value='');
+  toggleForm('ret-form'); renderReturns();
+}
+function renderReturns() {
+  const el=document.getElementById('ret-list');
+  if (!state.returns.length) { el.innerHTML='<div class="empty">No returns recorded yet. Add one above.</div>'; return; }
+  el.innerHTML=state.returns.map(r=>`
+    <div class="card">
+      <div class="record-header">
+        <div>
+          <div class="record-title">${r.name}</div>
+          <div class="record-meta">${fmtDate(r.date)}</div>
+          <div class="badges">
+            ${r.degree?`<span class="badge ${degreeColor(r.degree)}">${r.degree}</span>`:''}
+            ${r.method?`<span class="badge ${methodColor(r.method)}">${r.method}</span>`:''}
+          </div>
+        </div>
+        <button class="btn btn-danger" onclick="remove('returns',${r.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── LEADERSHIP ────────────────────────────────────────────
+function addLeadership() {
+  const training=document.getElementById('lead-training').value.trim();
+  const name=document.getElementById('lead-name').value.trim();
+  const role=document.getElementById('lead-role').value;
+  if (!training) { alert('Please enter a training name.'); return; }
+  if (!name) { alert("Please enter the brother's name."); return; }
+  if (!role) { alert('Please select an officer role.'); return; }
+  state.leadership.unshift({ id: Date.now(), training, date: document.getElementById('lead-date').value, name, role });
+  save();
+  ['lead-training','lead-name'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('lead-date').value='';
+  document.getElementById('lead-role').value='';
+  toggleForm('lead-form'); renderLeadership();
+}
+function renderLeadership() {
+  const el=document.getElementById('lead-list');
+  if (!state.leadership.length) { el.innerHTML='<div class="empty">No leadership training recorded yet. Add one above.</div>'; return; }
+  el.innerHTML=state.leadership.map(l=>`
+    <div class="card">
+      <div class="record-header">
+        <div>
+          <div class="record-title">${l.training}</div>
+          <div class="record-meta">${l.name}${l.date?' · '+fmtDate(l.date):''}</div>
+          <div class="badges">${l.role?`<span class="badge ${OFFICER_COLORS[l.role]||'b-gray'}">${l.role}</span>`:''}</div>
+        </div>
+        <button class="btn btn-danger" onclick="remove('leadership',${l.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── ROYAL SCOFIELD SOCIETY ────────────────────────────────
+function addScofield() {
+  const name=document.getElementById('sc-name').value.trim();
+  const level=document.getElementById('sc-level').value;
+  const date=document.getElementById('sc-date').value;
+  if (!name) { alert("Please enter the brother's name."); return; }
+  if (!level) { alert('Please select a level.'); return; }
+  state.scofield.unshift({ id: Date.now(), name, level, date });
+  save();
+  document.getElementById('sc-name').value='';
+  document.getElementById('sc-level').value='';
+  document.getElementById('sc-date').value='';
+  toggleForm('scofield-form'); renderScofield();
+}
+function renderScofield() {
+  const el=document.getElementById('scofield-list');
+  if (!state.scofield.length) { el.innerHTML='<div class="empty">No Royal Scofield Society members recorded yet. Add one above.</div>'; return; }
+  el.innerHTML=state.scofield.map(m=>`
+    <div class="card">
+      <div class="record-header">
+        <div>
+          <div class="record-title">${m.name}</div>
+          <div class="record-meta">${m.date?'Achieved '+fmtDate(m.date):''}</div>
+          <div class="badges">
+            ${m.level?`<span class="badge ${SCOFIELD_COLORS[m.level]||'b-gray'}">${m.level}</span>`:''}
+          </div>
+        </div>
+        <button class="btn btn-danger" onclick="remove('scofield',${m.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── DEGREES ───────────────────────────────────────────────
+function addDegree() {
+  const degree=document.getElementById('deg-degree').value;
+  const candidate=document.getElementById('deg-candidate').value.trim();
+  if (!degree||!candidate) { alert('Please fill in the degree and candidate name.'); return; }
+  state.degrees.unshift({ id: Date.now(), date: document.getElementById('deg-date').value, degree, candidate });
+  save();
+  document.getElementById('deg-date').value='';
+  ['deg-degree'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('deg-candidate').value='';
+  toggleForm('deg-form'); renderDegrees();
+}
+function renderDegrees() {
+  const el=document.getElementById('deg-list');
+  if (!state.degrees.length) { el.innerHTML='<div class="empty">No degree work recorded yet. Add one above.</div>'; return; }
+  el.innerHTML=state.degrees.map(d=>`
+    <div class="card">
+      <div class="record-header">
+        <div>
+          <div class="record-title">${d.candidate}</div>
+          <div class="record-meta">${fmtDate(d.date)}</div>
+          <div class="badges"><span class="badge ${degreeColor(d.degree)}">${d.degree}</span></div>
+        </div>
+        <button class="btn btn-danger" onclick="remove('degrees',${d.id})">Remove</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── REMOVE ────────────────────────────────────────────────
+function remove(section, id) {
+  if (!confirm('Remove this record?')) return;
+  state[section]=state[section].filter(x=>x.id!==id);
+  save();
+  if (section==='programs') renderPrograms();
+  if (section==='candidates') renderCandidates();
+  if (section==='returns') renderReturns();
+  if (section==='leadership') renderLeadership();
+  if (section==='scofield') renderScofield();
+  if (section==='degrees') renderDegrees();
+}
+
+// ── PDF REPORT ────────────────────────────────────────────
+function generatePDF() {
+  const s = state;
+  const now = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  function tableSection(title, headers, rows, emptyMsg) {
+    if (!rows.length) return `<h2>${title}</h2><p class="empty-msg">${emptyMsg}</p>`;
+    const thead = headers.map(h=>`<th>${h}</th>`).join('');
+    const tbody = rows.map(r=>`<tr>${r.map(c=>`<td>${c||'—'}</td>`).join('')}</tr>`).join('');
+    return `<h2>${title}</h2><table><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+  }
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Lodge Education Officer Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #111; margin: 0; padding: 0; }
+    .cover { text-align: center; padding: 80px 40px; border-bottom: 2px solid #222; margin-bottom: 30px; }
+    .cover h1 { font-size: 26px; margin-bottom: 8px; }
+    .cover p { color: #555; font-size: 14px; }
+    h2 { font-size: 15px; font-weight: bold; border-bottom: 1.5px solid #333; padding-bottom: 4px; margin: 28px 0 10px; page-break-after: avoid; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 11.5px; }
+    th { background: #222; color: #fff; text-align: left; padding: 6px 8px; font-weight: 600; }
+    td { padding: 5px 8px; border-bottom: 0.5px solid #ddd; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7f7f5; }
+    .empty-msg { color: #888; font-style: italic; margin-bottom: 16px; }
+    .footer { margin-top: 40px; border-top: 1px solid #ccc; padding-top: 10px; color: #888; font-size: 10px; text-align: center; }
+    @media print { body { margin: 0.5in; } }
+  </style>
+  </head><body>
+  <div class="cover">
+    <h1>Lodge Education Officer Report</h1>
+    <p>Generated on ${now}</p>
+  </div>
+
+  ${tableSection('Candidates',
+    ['Name','Master Craftsman','Current Degree','Return Exam Given','Exam Booklet'],
+    s.candidates.map(c=>[c.name, c.mc, c.degree, c.exam, c.booklet]),
+    'No candidates recorded.'
+  )}
+
+  ${tableSection('Returns Given',
+    ['Brother','Degree','Method','Date'],
+    s.returns.map(r=>[r.name, r.degree, r.method, fmtDate(r.date)]),
+    'No returns recorded.'
+  )}
+
+  ${tableSection('Education Programs',
+    ['Program / Topic','Delivered By','Date'],
+    s.programs.map(p=>[p.title, p.deliverer, fmtDate(p.date)]),
+    'No education programs recorded.'
+  )}
+
+  ${tableSection('Leadership Training',
+    ['Training','Brother','Officer Role','Date'],
+    s.leadership.map(l=>[l.training, l.name, l.role, fmtDate(l.date)]),
+    'No leadership training recorded.'
+  )}
+
+  ${tableSection('Royal Scofield Society',
+    ['Brother','Level Achieved','Date Achieved'],
+    s.scofield.map(m=>[m.name, m.level, fmtDate(m.date)]),
+    'No Royal Scofield Society members recorded.'
+  )}
+
+  ${tableSection('Degree Work',
+    ['Candidate','Degree Conferred','Date'],
+    s.degrees.map(d=>[d.candidate, d.degree, fmtDate(d.date)]),
+    'No degree work recorded.'
+  )}
+
+  <div class="footer">Lodge Education Officer Tracker &mdash; ${now}</div>
+  </body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (win) {
+    win.onload = () => { win.focus(); win.print(); };
+  } else {
+    // Fallback: download the HTML as a file
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'lodge-report.html';
+    a.click();
+  }
+}
+
+// Initial render
+renderOverview(); renderPrograms(); renderCandidates(); renderReturns(); renderLeadership(); renderScofield(); renderDegrees();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>
